@@ -1,2 +1,0 @@
-# Database_kpi
-test
