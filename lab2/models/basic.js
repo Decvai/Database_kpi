@@ -145,7 +145,9 @@ class BasicModel {
 	async autogenerateCategories(num) {
 		try {
 			await pool.query(
-				`INSERT INTO categories(name, description) SELECT random_string(trunc(random()*10+5)::int), random_text(trunc(random()*10+5)::int, trunc(random()*15+5)::int) FROM generate_series(1, ${num});`
+				`INSERT INTO categories(name, description) SELECT random_string(trunc(random()*10+5)::int), 
+				random_text(trunc(random()*10+5)::int, 
+				trunc(random()*15+5)::int) FROM generate_series(1, ${num});`
 			);
 		} catch (err) {
 			throw err;
@@ -155,7 +157,8 @@ class BasicModel {
 	async autogenerateAuthors(num) {
 		try {
 			await pool.query(
-				`INSERT INTO authors(name, age, email) SELECT (array['John', 'Lucas', 'Ethan', 'Mason', 'Mia', 'Charlotte', 'Amelia'])[floor(random() * 3 + 1)], 
+				`INSERT INTO authors(name, age, email) 
+				SELECT (array['John', 'Lucas', 'Ethan', 'Mason', 'Mia', 'Charlotte', 'Amelia'])[floor(random() * 3 + 1)], 
 				trunc(random()*90+5::int), random_email() FROM generate_series(1,${num});`
 			);
 		} catch (err) {
@@ -166,7 +169,8 @@ class BasicModel {
 	async autogenerateNews(num) {
 		try {
 			await pool.query(
-				`INSERT INTO news(title, content, publication_date, author_id) SELECT random_string(trunc(random()*10+5)::int), random_text(trunc(random()*10+5)::int, trunc(random()*15+5)::int),
+				`INSERT INTO news(title, content, publication_date, author_id) SELECT random_string(trunc(random()*10+5)::int), 
+				random_text(trunc(random()*10+5)::int, trunc(random()*15+5)::int),
 				timestamp '2014-01-10 20:00:00' +
 					   random() * (timestamp '2010-01-20 20:00:00' -
 								   timestamp '2019-01-10 10:00:00'), 
@@ -182,7 +186,8 @@ class BasicModel {
 		try {
 			const {
 				rows,
-			} = await pool.query(`SELECT authors.id, name, age, email, title, publication_date FROM authors INNER JOIN news on author_id = authors.id 
+			} = await pool.query(`SELECT authors.id, name, age, email, title, publication_date FROM authors 
+			INNER JOIN news on author_id = authors.id 
 			WHERE name LIKE '%${itemName}%' AND age BETWEEN ${itemAge.lower} AND ${itemAge.upper} AND title LIKE '%${itemTitle}%'`);
 			return rows;
 		} catch (err) {
@@ -194,10 +199,11 @@ class BasicModel {
 		try {
 			const {
 				rows,
-			} = await pool.query(`SELECT news_id, category_id, title, publication_date, author_id, name FROM news 
+			} = await pool.query(`SELECT news_id, category_id, title, author_id, publication_date, name as category_name, name FROM news
 			INNER JOIN news_category_links ncl ON news.id = ncl.news_id
 			INNER JOIN categories ON ncl.category_id = categories.id
-			WHERE news.id BETWEEN ${itemId.lower} AND ${itemId.upper} AND name LIKE '%${itemName}%' AND publication_date BETWEEN '${itemDate.lower}' AND '${itemDate.upper}'`);
+			WHERE news.id BETWEEN ${itemId.lower} AND ${itemId.upper} AND title LIKE '%${itemName}%' 
+			AND publication_date BETWEEN '${itemDate.lower}' AND '${itemDate.upper}'`);
 			return rows;
 		} catch (err) {
 			throw err;
@@ -208,11 +214,13 @@ class BasicModel {
 		try {
 			const {
 				rows,
-			} = await pool.query(`SELECT news_id, category_id, author_id, authors.name, authors.age, title, publication_date, categories.name AS category_name FROM news 
+			} = await pool.query(`SELECT news_id, category_id, author_id, authors.name, authors.age, 
+			title, publication_date, categories.name AS category_name FROM news 
 			INNER JOIN news_category_links ncl ON news.id = ncl.news_id
 			INNER JOIN categories ON ncl.category_id = categories.id
 			INNER JOIN authors ON author_id = authors.id
-			WHERE news.id BETWEEN ${newsId.lower} AND ${newsId.upper} AND authors.id BETWEEN ${authorId.lower} AND ${authorId.upper} AND categories.name LIKE '%${categoryName}%';`);
+			WHERE news.id BETWEEN ${newsId.lower} AND ${newsId.upper} AND authors.id 
+			BETWEEN ${authorId.lower} AND ${authorId.upper} AND categories.name LIKE '%${categoryName}%';`);
 			return rows;
 		} catch (err) {
 			throw err;

@@ -104,9 +104,11 @@ async function execute() {
 											continue;
 										}
 									} else {
-										console.log(
-											`This type unimplemented, try to input smh else...`
-										);
+										//**********/
+										// console.log(
+										// 	`This type unimplemented, try to input smh else...`
+										// );
+										tableValues.push(columnValue);
 										break;
 									}
 								}
@@ -230,21 +232,21 @@ async function execute() {
 							);
 							if (tableItemsId.indexOf(+enteredId) !== -1) {
 								let subordinateTableName, foreignKeyField;
-								if (tableName === 'news') {
+								if (tableName === 'authors') {
 									//?hmmm
-									subordinateTableName = 'authors';
-									foreignKeyField = 'news_id';
-								}
-								const numOfSubordinates = await basicController.checkOnSubordinates(
-									subordinateTableName,
-									foreignKeyField,
-									enteredId
-								);
-								if (numOfSubordinates === 1) {
-									console.log(
-										`Subordinates have FK on this table`
+									subordinateTableName = 'news';
+									foreignKeyField = 'author_id';
+									const numOfSubordinates = await basicController.checkOnSubordinates(
+										subordinateTableName,
+										foreignKeyField,
+										enteredId
 									);
-									continue;
+									if (numOfSubordinates === 1) {
+										console.log(
+											`Subordinates have FK on this id`
+										);
+										continue;
+									}
 								}
 								await basicController.deleteItem(
 									tableName,
