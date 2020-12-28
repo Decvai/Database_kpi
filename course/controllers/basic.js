@@ -11,7 +11,7 @@ module.exports = {
 	getItems: async function (tableName) {
 		try {
 			const rows = await basicModel.getItems(tableName);
-			basicView.showItems(rows);
+			console.log(`Sorry, but we cannot display this.`);
 			return rows;
 		} catch (err) {
 			console.log(err);

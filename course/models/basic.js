@@ -82,6 +82,8 @@ News.init(
 				deferrable: Deferrable.INITIALLY_IMMEDIAT,
 			},
 		},
+		likes: DataTypes.INTEGER,
+		views: DataTypes.INTEGER,
 	},
 	{
 		modelName: 'News',
@@ -340,53 +342,16 @@ class BasicModel {
 	async autogenerateNews(num) {
 		try {
 			await pool.query(
-				`INSERT INTO news(title, content, publication_date, author_id) SELECT random_string(trunc(random()*10+5)::int), 
+				`INSERT INTO news(title, content, publication_date, author_id, likes, views) SELECT random_string(trunc(random()*10+5)::int), 
 				random_text(trunc(random()*10+5)::int, trunc(random()*15+5)::int),
-				timestamp '2014-01-10 20:00:00' +
-					   random() * (timestamp '2010-01-20 20:00:00' -
-								   timestamp '2019-01-10 10:00:00'), 
-				trunc(random()*(SELECT MAX(id) FROM "authors")+1)
+				timestamp '2020-01-10 20:00:00' +
+					   random() * (timestamp '2019-01-20 20:00:00' -
+								   timestamp '2020-01-10 10:00:00'), 
+				trunc(random()*(SELECT MAX(id) FROM "authors")+(SELECT MIN(id) FROM "authors")),
+				trunc(random()*90+5::int),
+				trunc(random()*90+5::int)
 				FROM generate_series(1,${num});`
 			);
-		} catch (err) {
-			throw err;
-		}
-	}
-
-	async searchFirstReq(itemName, itemAge, itemTitle) {
-		try {
-			const { rows } = await pool.query(`SELECT authors.id, name, age, email, title, publication_date FROM authors 
-			INNER JOIN news on author_id = authors.id 
-			WHERE name LIKE '%${itemName}%' AND age BETWEEN ${itemAge.lower} AND ${itemAge.upper} AND title LIKE '%${itemTitle}%'`);
-			return rows;
-		} catch (err) {
-			throw err;
-		}
-	}
-
-	async searchSecondReq(itemId, itemName, itemDate) {
-		try {
-			const { rows } = await pool.query(`SELECT news_id, category_id, title, author_id, publication_date, name as category_name, name FROM news
-			INNER JOIN news_category_links ncl ON news.id = ncl.news_id
-			INNER JOIN categories ON ncl.category_id = categories.id
-			WHERE news.id BETWEEN ${itemId.lower} AND ${itemId.upper} AND title LIKE '%${itemName}%' 
-			AND publication_date BETWEEN '${itemDate.lower}' AND '${itemDate.upper}'`);
-			return rows;
-		} catch (err) {
-			throw err;
-		}
-	}
-
-	async searchThirdReq(newsId, authorId, categoryName) {
-		try {
-			const { rows } = await pool.query(`SELECT news_id, category_id, author_id, authors.name, authors.age, 
-			title, publication_date, categories.name AS category_name FROM news 
-			INNER JOIN news_category_links ncl ON news.id = ncl.news_id
-			INNER JOIN categories ON ncl.category_id = categories.id
-			INNER JOIN authors ON author_id = authors.id
-			WHERE news.id BETWEEN ${newsId.lower} AND ${newsId.upper} AND authors.id 
-			BETWEEN ${authorId.lower} AND ${authorId.upper} AND categories.name LIKE '%${categoryName}%';`);
-			return rows;
 		} catch (err) {
 			throw err;
 		}
@@ -409,27 +374,43 @@ class BasicModel {
 		try {
 			const dateTo = moment().format('YYYY-MM-DD');
 
-			const { rows } = await pool.query(`select news_id, name as category_name, title as news_title, publication_date from category_news_links
-				join news on news_id = news.id
-				join categories on category_id = categories.id
-				where categories.name like '${category || '%'}' and publication_date between '${countdownDate}' and '${dateTo}'
-				order by news_id desc`);
-			return rows;
+			if (category) {
+				const {
+					rows,
+				} = await pool.query(`select news_id, name as category_name, title as news_title, publication_date, likes, views from category_news_links
+					join news on news_id = news.id
+					join categories on category_id = categories.id
+					where categories.name like '${category || '%'}' and publication_date between '${countdownDate}' and '${dateTo}'
+					order by likes desc`);
+				return rows;
+			} else {
+				const { rows } = await pool.query(`select id, title as news_title, publication_date, likes, views from news
+					order by likes desc`);
+				return rows;
+			}
 		} catch (err) {
 			throw err;
 		}
 	}
 
-	async sortyByViews(category, countdownDate) {
+	async sortByViews(category, countdownDate) {
 		try {
 			const dateTo = moment().format('YYYY-MM-DD');
 
-			const { rows } = await pool.query(`select news_id, name as category_name, title as news_title, publication_date from category_news_links
-				join news on news_id = news.id
-				join categories on category_id = categories.id
-				where categories.name like '${category || '%'}' and publication_date between '${countdownDate}' and '${dateTo}'
-				order by VIEWSSSSSSS!!!!! desc`);
-			return rows;
+			if (category) {
+				const {
+					rows,
+				} = await pool.query(`select news_id, name as category_name, title as news_title, publication_date, likes, views from category_news_links
+					join news on news_id = news.id
+					join categories on category_id = categories.id
+					where categories.name like '${category || '%'}' and publication_date between '${countdownDate}' and '${dateTo}'
+					order by views desc`);
+				return rows;
+			} else {
+				const { rows } = await pool.query(`select id, title as news_title, publication_date, likes, views from news
+					order by views desc`);
+				return rows;
+			}
 		} catch (err) {
 			throw err;
 		}

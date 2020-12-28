@@ -9,23 +9,9 @@ execute();
 async function execute() {
 	while (true) {
 		await basicController.connection();
-		console.log(`List of commands: create, read, update, delete, autogeneration, sorting, exit`);
+		console.log(`List of commands: create, update, delete, autogeneration, sorting, exit`);
 		const input = await readline.Question('Enter command: ');
-		if (input === 'read') {
-			const tableNames = await basicController.getTableNames();
-			let hasName = false;
-			while (!hasName) {
-				const tableName = await readline.Question('Enter table name: ');
-				for (const tName in tableNames) {
-					if (tableNames[tName].table_name === tableName) {
-						hasName = true;
-						await basicController.getItems(tableName);
-						break;
-					}
-				}
-				if (!hasName) console.log(`This name is missing`);
-			}
-		} else if (input === 'create') {
+		if (input === 'create') {
 			const tableNames = await basicController.getTableNames();
 			let hasName = false;
 			while (!hasName) {
@@ -160,7 +146,6 @@ async function execute() {
 							if (tableItemsId.indexOf(+enteredId) !== -1) {
 								let subordinateTableName, foreignKeyField;
 								if (tableName === 'authors') {
-									//?hmmm
 									subordinateTableName = 'news';
 									foreignKeyField = 'author_id';
 									const numOfSubordinates = await basicController.checkOnSubordinates(subordinateTableName, foreignKeyField, enteredId);
@@ -190,8 +175,8 @@ async function execute() {
 						hasName = true;
 						const num = await readline.Question('Enter number of records: ');
 						if (tableName === 'news') await basicController.autogenerateNews(num);
-						// else if (tableName === 'authors') await basicController.autogenerateAuthors(num);
-						// else if (tableName === 'categories') await basicController.autogenerateCategories(num);
+						else if (tableName === 'authors') await basicController.autogenerateAuthors(num);
+						else if (tableName === 'categories') await basicController.autogenerateCategories(num);
 						break;
 					}
 				}
